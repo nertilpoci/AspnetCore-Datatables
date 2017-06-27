@@ -1,0 +1,107 @@
+@model AspnetCore_Datatables.Model.Customer
+
+@{
+    ViewData["Title"] = "Index";
+}
+<style>
+    td.details-control {
+        background: url('https://datatables.net/examples/resources/details_open.png') no-repeat center center;
+        cursor: pointer;
+    }
+
+    tr.shown td.details-control {
+        background: url('https://datatables.net/examples/resources/details_close.png') no-repeat center center;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12">
+        <br />
+        <hr />
+        <div class="content-box-large">
+            <div class="panel-heading">
+                <div class="panel-title"><h2 class="text-info">Orders for <em class="text-primary">@Model.FirstName @Model.LastName</em></h2></div>
+            </div>
+            <div class="panel-body">
+                <table id="ordersTable" style="width:100%!important" class="table  table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Order Number</th>
+                            <th>OrderDate</th>
+                            <th>TotalAmount</th>
+                            <th></th>
+
+                        </tr>
+                    </thead>
+
+                </table>
+            </div>
+        </div>
+        <hr />
+    </div>
+</div>
+
+@section Scripts{
+    <script language="javascript" type="text/javascript">
+
+        var customerId=@Model.Id;
+        var ordersTable;
+        $(document).ready(function () {
+            ordersTable = $('#ordersTable').DataTable({
+                select: {
+                    style: 'single'
+                }, "ordering": true ,searching: true,
+                responsive: true, "bProcessing": true,
+                "bServerSide": true,
+                "sAjaxSource": '/Orders/AjaxDataProvider/' + customerId,
+                "columnDefs": [
+                    {
+                        "targets": [0],
+                        "visible": false,
+                        "searchable": false
+                    }
+                ],
+                "columns": [
+                    { "data": "id" },
+                    { "data": "orderNumber" },
+                    { "data": "orderDate" },
+                    { "data": "totalAmount" },
+                    {
+                        "className": 'details-control',
+                        "orderable": false,
+                        "data": null,
+                        "defaultContent": ''
+                    },
+                ]
+            });
+
+            // Add event listener for opening and closing details
+            $('#ordersTable tbody').on('click', 'td.details-control', function () {
+                var tr = $(this).closest('tr');
+                var row = ordersTable.row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    var subtbl = $('<table class="table  table-bordered" style="width:100%"/>');
+                    subtbl.DataTable({
+                        data: row.data().orderItems,
+                        columns: [
+                            { data: "product.productName", title: "Product" },
+                            { data: "unitPrice", title: "UnitPrice" },
+                            { data: "quantity", title: "Quantity" }
+
+
+                        ]
+                    });
+                  row.child(subtbl).show();
+                    tr.addClass('shown');
+                }
+            });
+        });
+    </script>
+}

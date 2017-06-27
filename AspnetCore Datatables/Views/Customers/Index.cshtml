@@ -1,0 +1,341 @@
+@model IEnumerable<AspnetCore_Datatables.Model.Customer>
+
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <br />
+        <hr />
+        <div class="content-box-large">
+
+            <div class="panel-heading">
+                <div class="panel-title"><h2 class="text-info">Customers</h2></div>
+                <div class="panel-options">
+                    <button class="btn btn-primary btn-link" onclick="addNewItem()"> <span class="glyphicon glyphicon-plus"></span></button>
+                    <button class="btn btn-default btn-link" id="btnEditItem" onclick="editSelectedItem()"><span class="glyphicon glyphicon-edit"></span></button>
+                    <button class="btn btn-danger btn-link" id="btnDeleteItem" onclick="deleteSelectedItem()"><span class="glyphicon glyphicon-trash"></span></button>
+
+                </div>
+            </div>
+            <div class="panel-body">
+                <table id="customersTable" style="width:100%!important" class="table  table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>FirstName</th>
+                            <th>LastName</th>
+                            <th>City</th>
+                            <th>Country</th>
+                            <th>Phone</th>
+                            <th></th>
+
+                        </tr>
+                    </thead>
+
+                </table>
+            </div>
+        </div>
+        <hr />
+    </div>
+</div>
+
+@section Scripts{
+    <script language="javascript" type="text/javascript">
+// forms
+    function createCustomersForm(formid)
+    {
+        return `  <h2 class="text-center">New Customer</h2>
+                        <form  id="${formid}" class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label"
+                                   for="firstName">First Name</label>
+                            <div class="col-sm-10">
+                                <input type="text" required class="form-control"
+                                       id="firstName" name="firstName" placeholder="First Name" />
+                            </div>
+                        </div>
+    <div class="form-group">
+                            <label class="col-sm-2 control-label"
+                                   for="lastName">Last Name</label>
+                            <div class="col-sm-10">
+                                <input type="text" required class="form-control"
+                                       id="lastName" name="lastName" placeholder="Last Name" />
+                            </div>
+                        </div>
+        <div class="form-group">
+                            <label class="col-sm-2 control-label"
+                                   for="city">City</label>
+                            <div class="col-sm-10">
+                                <input type="text" required class="form-control"
+                                       id="city" name="city" placeholder="City" />
+                            </div>
+                        </div>
+    <div class="form-group">
+                            <label class="col-sm-2 control-label"
+                                   for="country">Country</label>
+                            <div class="col-sm-10">
+                                <input type="text" required class="form-control"
+                                       id="country" name="country" placeholder="Country" />
+                            </div>
+                        </div>
+                         <div class="form-group">
+                            <label class="col-sm-2 control-label"
+                                   for="phone">Phone</label>
+                            <div class="col-sm-10">
+                                <input type="text" required class="form-control"
+                                       id="phone" name="phone" placeholder="Phone" />
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="col-sm-offset-3 col-sm-6">
+                                <button type="submit" class="btn btn-primary btn-lg">Create</button>
+                                <button type="reset" class=" btn btn-lg btn-default pull-right">Reset</button>
+                            </div>
+                        </div>
+                        <div id="error" class="text-danger"></div>
+                    </form>`;
+
+
+
+
+    }
+    function updateCustomersForm(formid,id, firstName,lastName,city,country,phone)
+    {
+        return `  <h2 class="text-center">Update Customer</h2>
+                        <form  id="${formid}" class="form-horizontal" role="form">
+    <input type="hidden" name="id"value="${id}"/>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label"
+                                   for="firstName">First Name</label>
+                            <div class="col-sm-10">
+                                <input type="text" required class="form-control"
+                                       id="firstName" name="firstName" value="${firstName}" placeholder="First Name" />
+                            </div>
+                        </div>
+    <div class="form-group">
+                            <label class="col-sm-2 control-label"
+                                   for="lastName">Last Name</label>
+                            <div class="col-sm-10">
+                                <input type="text" required class="form-control"
+                                       id="lastName"  value="${lastName}" name="lastName" placeholder="Last Name" />
+                            </div>
+                        </div>
+        <div class="form-group">
+                            <label class="col-sm-2 control-label"
+                                   for="city">City</label>
+                            <div class="col-sm-10">
+                                <input type="text" required class="form-control"
+                                       id="city"  value="${city}" name="city" placeholder="City" />
+                            </div>
+                        </div>
+    <div class="form-group">
+                            <label class="col-sm-2 control-label"
+                                   for="country">Country</label>
+                            <div class="col-sm-10">
+                                <input type="text" required class="form-control"
+                                       id="country"  value="${country}" name="country" placeholder="Country" />
+                            </div>
+                        </div>
+                         <div class="form-group">
+                            <label class="col-sm-2 control-label"
+                                   for="phone">Phone</label>
+                            <div class="col-sm-10">
+                                <input type="text" required class="form-control"
+                                       id="phone"  value="${phone}" name="phone" placeholder="Phone" />
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="col-sm-offset-3 col-sm-6">
+                                <button type="submit" class="btn btn-primary btn-lg">Update</button>
+                            </div>
+                        </div>
+                        <div id="error" class="text-danger"></div>
+                    </form>`;
+    }
+    // --forms
+        var customersTable;
+        var customersTableCreate = "#createCustomersForm";
+        var customersTableUpdate = "#updateCustomersForm";
+        function confirmDelete(callback) {
+            bootbox.confirm({
+                message: "<h3>Are you sure you want to delete this customer!!!</h3>",
+                buttons: {
+                    confirm: {
+                        label: 'Yes',
+                        className: 'btn-success'
+                    },
+                    cancel: {
+                        label: 'No',
+                        className: 'btn-danger'
+                    }
+                },
+                callback: function (result) {
+                    if (result) callback();
+                }
+            });
+        }
+        function editSelectedItem() {
+            var data = customersTable.rows({ selected: true }).data();
+            var form = updateCustomersForm("updateCustomersForm", data[0].id, data[0].firstName, data[0].lastName, data[0].city, data[0].country, data[0].phone);
+            var dialog = bootbox.dialog({
+                message: form,
+                closeButton: true
+            });
+            $(customersTableUpdate).submit(function (e) {
+              
+                var formData = new FormData($(this)[0]);
+                $.ajax({
+                    type: "POST",
+                    url: "/customers/Edit",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        dialog.modal('hide');
+                        customersTable.draw(true);
+                        toggleActionButtons(false);
+
+                    }
+
+                }).fail(function (error) {
+                    $(customersTableUpdate + " div[id=error]").html(error.statusText);
+                }).done(function () {
+                    $(customersTableUpdate)[0].reset();
+                    $(customersTableUpdate + " div[id=error]").html("");
+
+                });
+
+                e.preventDefault(); // avoid to execute the actual submit of the form.
+            });
+
+        }
+        function addNewItem() {
+
+            var form = createCustomersForm("createCustomersForm");
+            var dialog = bootbox.dialog({
+                message: form,
+                closeButton: true
+            });
+            $(customersTableCreate).submit(function (e) {
+                
+                var formData = new FormData($(this)[0]);
+                $.ajax({
+                    type: "POST",
+                    url: "/customers/create",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        dialog.modal('hide');
+                        console.log(data);
+                        customersTable.row.add({ "id": data.id, "firstName": data.firstName, "lastName": data.lastName, "city": data.city, "country": data.country, "phone": data.phone   }).draw(true);
+                        toggleActionButtons(false);
+                    }
+
+                }).fail(function (error) {
+                    $(customersTableCreate + " div[id=error]").html(error.statusText);
+
+                }).done(function () {
+                    $(customersTableCreate)[0].reset();
+                    $(customersTableCreate + " div[id=error]").html("");
+
+                });
+
+                e.preventDefault(); // avoid to execute the actual submit of the form.
+            });
+        }
+        function deleteSelectedItem() {
+           
+            confirmDelete(function () { 
+
+                var data = customersTable.rows({ selected: true }).data();
+                $.ajax({
+                    type: "POST",
+                    url: "/Customers/Delete",
+                    data: { id: data[0].id },
+                    success: function (data) {
+                        customersTable.draw(true);
+                        toggleActionButtons(false);
+                    }
+
+                }).fail(function (error) {
+                    alert(error.statusText);
+                    console.log(error);
+                })
+            });
+        }
+        function toggleActionButtons(show) {
+            if (show) {
+                $("#btnEditItem").show();
+                $("#btnDeleteItem").show();
+            }
+            else {
+
+                $("#btnEditItem").hide();
+                $("#btnDeleteItem").hide();
+            }
+        }
+        $(document).ready(function () {
+            toggleActionButtons(false);
+            customersTable = $('#customersTable').DataTable({
+                select: {
+                    style: 'single'
+                }, "ordering": true ,searching: true,
+                responsive: true, "bProcessing": true,
+                "bServerSide": true,
+                "sAjaxSource": '/Customers/AjaxDataProvider',
+                "columnDefs": [
+                    {
+                        "targets": [0],
+                        "visible": false,
+                        "searchable": false
+                    }, {
+
+                        "render": function (data, type, row) {
+                            return ` <a class="btn btn-link"  href="/Orders/index/${data.id}" >Orders<a> `
+                        },
+                        "targets": 6
+                    }
+                ],
+                "columns": [
+
+
+                    { "data": "id" },
+                    { "data": "firstName" },
+                    { "data": "lastName" },
+                    { "data": "city" },
+                    { "data": "country" },
+                    { "data": "phone" },
+                    {
+
+                        "orderable": false,
+                        "searchable": false,
+                        "data": null
+                    }
+                ]
+            });
+            $('#customersTable tbody').on('click', 'tr', function () {
+                setTimeout(function () {
+                    var selectedCount = customersTable.rows({ selected: true }).count();
+
+                    toggleActionButtons(selectedCount > 0);
+
+                }, 100)
+
+
+            });
+
+
+
+
+
+
+
+
+        });
+    </script>
+}
